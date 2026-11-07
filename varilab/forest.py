@@ -56,12 +56,7 @@ def _pass(h,edges,adj,parent,order,roots,evidence):
             'singletons':singleton,'edge_joints':joints,'directed_messages':trace,'message_count':len(trace)}
 
 
-def forest(payload,*,evidence=None):
-    """Exact tree sum-product in floating-point log space, not loopy BP.
-
-    The forest path allows 1..128 nodes; finite enumeration and mean field keep
-    their existing independent 12-node limits. Cycles (even zero edges) fail.
-    """
+def _prepare(payload,evidence):
     h,edges=_compile_model(payload,128);n=len(h)
     if len(edges)>n-1:raise ValueError('forest requires an acyclic graph')
     given=_evidence(evidence,n);adj=[[] for _ in h];uf=list(range(n))
@@ -80,6 +75,16 @@ def forest(payload,*,evidence=None):
             i=stack.pop();order.append(i)
             for j,w in reversed(adj[i]):
                 if j not in seen:seen.add(j);parent[j]=(i,w);stack.append(j)
+    return h,edges,given,adj,parent,order,roots
+
+
+def forest(payload,*,evidence=None):
+    """Exact tree sum-product in floating-point log space, not loopy BP.
+
+    The forest path allows 1..128 nodes; finite enumeration and mean field keep
+    their existing independent 12-node limits. Cycles (even zero edges) fail.
+    """
+    h,edges,given,adj,parent,order,roots=_prepare(payload,evidence)
     conditional=_pass(h,edges,adj,parent,order,roots,given)
     unconditional=_pass(h,edges,adj,parent,order,roots,{}) if given else conditional
     log_evidence=conditional['log_partition']-unconditional['log_partition'] if given else 0.0
