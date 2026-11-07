@@ -9,14 +9,14 @@ def number(v,name,limit=100):
     return float(v)
 
 
-def compile_model(payload):
+def _compile_model(payload,max_spins):
     if not isinstance(payload,dict) or set(payload)!={'version','fields','edges'}:
         raise ValueError('model requires exactly version, fields and edges')
     if type(payload['version']) is not int or payload['version']!=1:
         raise ValueError('version must be integer 1')
     h=payload['fields'];edges=payload['edges']
-    if not isinstance(h,(list,tuple)) or not 1<=len(h)<=12:
-        raise ValueError('fields needs 1..12 coordinates')
+    if not isinstance(h,(list,tuple)) or not 1<=len(h)<=max_spins:
+        raise ValueError('fields needs 1..'+str(max_spins)+' coordinates')
     h=tuple(number(v,'field') for v in h)
     if not isinstance(edges,(list,tuple)) or len(edges)>len(h)*(len(h)-1)//2:
         raise ValueError('edges must be a bounded list')
@@ -30,6 +30,10 @@ def compile_model(payload):
         if (i,j) in found:raise ValueError('duplicate edge')
         found.add((i,j));out.append((i,j,number(e['weight'],'weight')))
     return h,tuple(sorted(out))
+
+
+def compile_model(payload):
+    return _compile_model(payload,12)
 
 
 def canonical(h,edges):
