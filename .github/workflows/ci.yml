@@ -29,3 +29,6 @@ jobs:
       - run: PYTHONPATH=. python examples/render_audit.py --check
       - run: python -m varilab exact examples/coupled.json
       - run: python -m varilab compare examples/coupled.json --initial '[0.1,0.1]'
+      - run: python -m varilab curvature-demo
+      - run: python -m varilab curvature examples/coupled.json --means '[0,0]'
+      - run: PYTHONPATH=. python examples/render_curvature.py --check
