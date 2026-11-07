@@ -51,7 +51,7 @@ Dimension 1..12 and magnitudes <=100 keep state enumeration and log energies fin
 - Fit work: `requested_sweeps*n*(n+E) <= 500000`. The conservative check uses the requested cap, even when a run might stop early. The boundary request n=10, E=40, 1,000 sweeps is accepted; E=41 is refused before ELBO evaluation. Max sweeps is 1,000.
 - `compare` checks both limits before running either branch. Invalid settings fail through the same fit validation; error output is never a partial result.
 
-The reference takes O(2^n*(n+E+n^2)) arithmetic and retains O(2^n*n+n^2) data. Fitting recomputes a full ELBO after each update, so its conservative arithmetic is O(S*n*(n+E)); history storage is O(S*n^2). Adjacency and model storage add O(n+E). `compare` also retains all q state rows, so enumeration-sized output is intentional. Resource counts are operational limits, not timing guarantees. Error or work-cap rejection is not a truncated approximation.
+The reference takes `O(2^n*(n+E+n^2))` arithmetic and retains `O(2^n*n+n^2)` data. Fitting recomputes a full ELBO after each update, so its conservative arithmetic is `O(S*n*(n+E))`; history storage is `O(S*n^2)`. Adjacency and model storage add `O(n+E)`. `compare` also retains all q state rows, so enumeration-sized output is intentional. Resource counts are operational limits, not timing guarantees. Error or work-cap rejection is not a truncated approximation.
 
 ## Tests, figure and source
 
