@@ -86,12 +86,14 @@ def curvature(payload,means):
 def curvature_demo():
     """Direct boundary neighbors plus the existing coupled fixture, no search."""
     import math
-    from .core import mean_field
     rows=[]
     for name,j in [('below critical',math.nextafter(1,0)),('critical',1.0),('above critical',math.nextafter(1,2)),('symmetric J=3',3.0),('broken symmetry J=3',3.0)]:
         model={'version':1,'fields':[0,0],'edges':[{'i':0,'j':1,'weight':j}]}
-        means=mean_field(model,initial=[.1,.1],tolerance=1e-12)['means'] if name.startswith('broken') else [0,0]
-        rows.append({'name':name,'audit':curvature(model,means)})
+        means=[.9949015284526289]*2 if name.startswith('broken') else [0,0]
+        audit=curvature(model,means)
+        # Transcendental libm gradient diagnostics are not rational certificates.
+        audit.pop('gradient_float')
+        rows.append({'name':name,'audit':audit})
     assert [r['audit']['classification'] for r in rows]==['negative_definite','negative_semidefinite','indefinite','indefinite','negative_definite']
-    return {'rows':rows,'selection':'direct critical J=1 binary-float neighbors, plus the existing J=3 symmetric/broken-symmetry fixture; no parameter search',
-            'scope':'exact Hessian inertia at represented means; not exact stationarity or an optimum certificate; inertia counts signs, not eigenvalue magnitudes'}
+    return {'rows':rows,'selection':'direct critical J=1 binary-float neighbors, plus the existing J=3 symmetric point and captured binary-float broken-symmetry means 0.9949015284526289; no parameter search',
+            'scope':'exact Hessian inertia at fixed represented means; libm-dependent float gradient omitted from this reproducible certificate fixture, available from curvature API; not exact stationarity or an optimum certificate; inertia counts signs, not eigenvalue magnitudes'}
