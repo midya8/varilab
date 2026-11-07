@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="660" viewBox="0 0 1120 660">
+<rect width="1120" height="660" fill="#101827"/>
+<style>text{font-family:Arial,sans-serif;fill:#e7edf8}</style>
+<metadata>{&quot;analytic_means&quot;: [1, 0.964027580076, 0.929349175147, 0.895918236362], &quot;evidence&quot;: [{&quot;i&quot;: 0, &quot;spin&quot;: 1}], &quot;gates&quot;: {&quot;conditional_endpoint_mean_gt_point8&quot;: true, &quot;unconditioned_endpoint_mean_gt_point8&quot;: false}, &quot;model&quot;: {&quot;edges&quot;: [{&quot;i&quot;: 0, &quot;j&quot;: 1, &quot;weight&quot;: 2.0}, {&quot;i&quot;: 1, &quot;j&quot;: 2, &quot;weight&quot;: 2.0}, {&quot;i&quot;: 2, &quot;j&quot;: 3, &quot;weight&quot;: 2.0}], &quot;fields&quot;: [0.0, 0.0, 0.0, 0.0], &quot;version&quot;: 1}, &quot;scope&quot;: &quot;figure uses analytic rounded display values; full float messages remain in forest-demo; exact structure does not imply rational arithmetic&quot;, &quot;selection&quot;: &quot;direct four-node zero-field chain J=2 with first spin +1, plus 128-node chain with identical fields/couplings; no parameter search&quot;}</metadata>
+<text x="35" y="43" font-size="28" style="fill:#e7edf8">VariLab | evidence travels through an exact tree</text>
+<text x="35" y="75" font-size="17" style="fill:#e7edf8">Four-node zero-field Ising chain, J=2. Prior means are all zero. Observe spin 0 = +1.</text>
+<path d="M 160 143 H 345" stroke="#879cbd" stroke-width="3"/>
+<path d="M 425 143 H 610" stroke="#879cbd" stroke-width="3"/>
+<path d="M 690 143 H 875" stroke="#879cbd" stroke-width="3"/>
+<circle cx="120" cy="143" r="28" fill="#63d8bc"/>
+<text x="114" y="149" font-size="18" style="fill:#101827">0</text>
+<circle cx="385" cy="143" r="28" fill="#33445e"/>
+<text x="379" y="149" font-size="18" style="fill:#e7edf8">1</text>
+<circle cx="650" cy="143" r="28" fill="#33445e"/>
+<text x="644" y="149" font-size="18" style="fill:#e7edf8">2</text>
+<circle cx="915" cy="143" r="28" fill="#33445e"/>
+<text x="909" y="149" font-size="18" style="fill:#e7edf8">3</text>
+<text x="35" y="213" font-size="16" style="fill:#e7edf8">Mean spin, one shared vertical scale</text>
+<path d="M 80 465 H 1070" stroke="#33445e"/>
+<text x="35" y="470" font-size="13" style="fill:#e7edf8">0</text>
+<path d="M 80 417.5 H 1070" stroke="#33445e"/>
+<text x="35" y="422.5" font-size="13" style="fill:#e7edf8">0.25</text>
+<path d="M 80 370.0 H 1070" stroke="#33445e"/>
+<text x="35" y="375.0" font-size="13" style="fill:#e7edf8">0.5</text>
+<path d="M 80 322.5 H 1070" stroke="#33445e"/>
+<text x="35" y="327.5" font-size="13" style="fill:#e7edf8">0.75</text>
+<path d="M 80 275 H 1070" stroke="#33445e"/>
+<text x="35" y="280" font-size="13" style="fill:#e7edf8">1</text>
+<rect data-node="0" data-value="1" x="105" y="275" width="64" height="190" fill="#63d8bc"/>
+<text x="97" y="263" font-size="16" style="fill:#63d8bc">1.000000</text>
+<text x="101" y="493" font-size="15" style="fill:#e7edf8">spin 0</text>
+<circle data-prior-node="0" data-prior-mean="0" cx="137" cy="465" r="5" fill="#efbd68"/>
+<rect data-node="1" data-value="0.964027580076" x="370" y="281.83475978556" width="64" height="183.16524021444" fill="#63d8bc"/>
+<text x="362" y="269.83475978556" font-size="16" style="fill:#63d8bc">0.964028</text>
+<text x="366" y="493" font-size="15" style="fill:#e7edf8">spin 1</text>
+<circle data-prior-node="1" data-prior-mean="0" cx="402" cy="465" r="5" fill="#efbd68"/>
+<rect data-node="2" data-value="0.929349175147" x="635" y="288.42365672207" width="64" height="176.57634327793" fill="#63d8bc"/>
+<text x="627" y="276.42365672207" font-size="16" style="fill:#63d8bc">0.929349</text>
+<text x="631" y="493" font-size="15" style="fill:#e7edf8">spin 2</text>
+<circle data-prior-node="2" data-prior-mean="0" cx="667" cy="465" r="5" fill="#efbd68"/>
+<rect data-node="3" data-value="0.895918236362" x="900" y="294.77553509122004" width="64" height="170.22446490878" fill="#63d8bc"/>
+<text x="892" y="282.77553509122004" font-size="16" style="fill:#63d8bc">0.895918</text>
+<text x="896" y="493" font-size="15" style="fill:#e7edf8">spin 3</text>
+<circle data-prior-node="3" data-prior-mean="0" cx="932" cy="465" r="5" fill="#efbd68"/>
+<text x="35" y="535" font-size="16" style="fill:#e7edf8">Green: conditioned mean tanh(2)^distance. Amber baseline: prior mean 0, a different query.</text>
+<text x="35" y="565" font-size="16" style="fill:#e7edf8">P(spin 0 = +1) = 0.5. Endpoint &gt; 0.8 gate passes with evidence and fails without it.</text>
+<text x="35" y="595" font-size="15" style="fill:#b7c4d9">128-node chain: 254 directed messages, no full-state enumeration. Only acyclic graphs are accepted.</text>
+<text x="35" y="623" font-size="15" style="fill:#b7c4d9">Supplied-model conditioning, not causal intervention. Float log-sum-exp; possible underflow retains finite logs.</text>
+<text x="35" y="649" font-size="14" style="fill:#b7c4d9">Display geometry uses analytic values rounded to 12 decimals; full float messages are returned by the demo.</text>
+</svg>
