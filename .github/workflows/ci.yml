@@ -38,3 +38,7 @@ jobs:
       - run: python -m varilab map-demo > /tmp/map-demo.json
       - run: python -m varilab map examples/coupled.json --evidence '[{"i":0,"spin":1}]'
       - run: PYTHONPATH=. python examples/render_map.py --check
+      - run: python -m varilab elimination-demo > /tmp/elimination-demo.json
+      - run: python -m varilab plan examples/coupled.json --query '[1]'
+      - run: python -m varilab eliminate examples/coupled.json --query '[1]' --evidence '[{"i":0,"spin":1}]'
+      - run: PYTHONPATH=. python examples/render_elimination.py --check
