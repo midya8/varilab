@@ -50,6 +50,26 @@ No eigenvalue tolerance turns the adjacent representable couplings into the same
 
 Unlike the finite-state reference, this curvature calculation is rational arithmetic on the represented point. It does not invoke state enumeration or fitting. It rejects endpoint means; Hessian derivatives are not finite there. Dimension remains capped at 12; elimination uses cubic rational-operation work and quadratic storage, with variable integer bit cost, not a runtime promise. No spectral condition number, exact gradient, optimizer convergence proof or interval enclosure of uncertain inputs is claimed.
 
+## Exact sum-product on forests, with evidence
+
+![Conditioning travels through an acyclic four-spin Ising model](assets/forest-audit.svg)
+
+```sh
+python -m varilab forest-demo
+python -m varilab forest examples/coupled.json --evidence '[{"i":0,"spin":1}]'
+PYTHONPATH=. python examples/render_forest.py --check
+```
+
+`forest(model, evidence=[{'i': 0, 'spin': 1}])` is a separate two-pass log-domain sum-product implementation for **acyclic supplied models with 1..128 spins**. It returns all conditional singleton marginals, all four joint-state probabilities per stored edge, edge moments/covariances, component roots and log partitions, every directed message with its source dependencies, unconditional log partition, and evidence probability/log probability. Singleton states are ordered `[-1,+1]`; edge states are `(-1,-1),(-1,+1),(+1,-1),(+1,+1)`. Messages are unnormalized log subtree sums, not probabilities. The original enumeration, fitting and curvature APIs keep their 12-spin limits.
+
+A directly specified four-node zero-field chain with `J=2` has zero prior means. Observing spin 0 as `+1` gives conditional means `1, 0.964028, 0.929349, 0.895918`, analytically `tanh(2)^distance`, with evidence probability `0.5`. The endpoint-mean `>0.8` gate passes with evidence and fails for the prior query. Ignoring evidence is intentionally a **different query**, not a weak inference baseline or a method ranking. A 128-node chain returns 254 directed messages without enumerating `2**128` states. The demo includes its complete messages and marginals, not a timing/speedup claim.
+
+Evidence is a list of distinct records containing exactly integer `i` and integer `spin` in `{-1,+1}`. Hard evidence clamps the named spins; it does not remove edges or perform a causal intervention. Finite potentials give every consistent evidence assignment positive mathematical probability. Underflowed possible probabilities keep finite logs. Forbidden clamped singleton/edge states have probability zero and null log probability. The API does not clip or relabel roundoff as exact normalization. Cycles, including zero-weight cycles, are rejected **before messages**, not silently handled as loopy belief propagation. Disconnected forests and isolated nodes are supported.
+
+Model schema, finite magnitude limits of 100 and duplicate-edge checks match the other APIs, with a 128-spin cap only on the forest path. The shared compiler retains the original public 12-spin validation. Iterative traversal avoids recursion-depth dependence. There are exactly `2*edge_count` messages per pass. Cavity sums are deliberately recomputed, and each trace records dependencies, so actual arithmetic/output accounting is `O(n + sum_i degree_i^2)`, at most quadratic under this cap; no linear-time implementation claim is made. Evidence requires a second unconditional pass to compute its normalizer. Matrix-sized all-pair marginals, cyclic models, arbitrary factors, MAP decoding and learned structure are not implemented.
+
+The forest figure uses the fixed analytic small-chain means rounded to 12 decimals for portable display geometry, not float messages serialized as byte-exact certificates. Its metadata states this boundary and includes exact fixture inputs, gates and selection. Full float-message outputs are available in `forest-demo`; they are checked numerically, not used for sign certificates.
+
 ## Model and calculations
 
 For spins `z_i` in `{-1,+1}`, the target is proportional to:
@@ -73,7 +93,7 @@ For this normalized target, `log_partition - ELBO = KL(q against p)`. `compare` 
 ## API and strict JSON CLI
 
 ```python
-from varilab import exact, mean_field, compare, elbo, elbo_gradient, curvature
+from varilab import exact, mean_field, compare, elbo, elbo_gradient, curvature, forest
 model = {
     'version': 1,
     'fields': [0, 0],
@@ -86,6 +106,7 @@ audit = compare(model, initial=[.1, .1], tolerance=1e-12)
 objective = elbo(model, [.2, -.3])
 gradient = elbo_gradient(model, [.2, -.3])
 geometry = curvature(model, [0, 0])
+conditioned = forest(model, evidence=[{'i': 0, 'spin': 1}])
 ```
 
 ```sh
@@ -110,7 +131,7 @@ JSON files are capped at 256 KiB. Duplicate keys, nonfinite values, unknown fiel
 
 ## Evidence, limits and attribution
 
-58 tests include analytic independent/two-spin references, direct exponential enumeration on 216 three-spin models, all pair moments, independent product-state ELBO/KL sums, finite differences for every gradient coordinate, one-coordinate exhaustive objective scans, every-update ascent/history reconstruction, symmetry/permutation checks, zero-start nonmaximum, the objective-versus-mean counterexample, lost covariance, saturated/underflow arithmetic, validation, input/RNG isolation, actual exact-work boundary and preflight rejection, CLI equality/errors and four figure tests. 20 added curvature/API/CLI tests verify exact congruence and witness reconstruction, a 729-matrix independent characteristic-polynomial inertia oracle, 1x1/2x2 and singular pivots, finite-difference Hessians, binary-neighbor sign boundaries, coordinate permutations, 12-spin and near-endpoint cases, input isolation and validation. Four added curvature-figure tests verify all 15 count bars and complete certificates. The original figure tests inspect all 16 bars and nine table values, full unchanged metadata, regeneration and rejection of changed fixtures.
+87 tests include analytic independent/two-spin references, direct exponential enumeration on 216 three-spin models, all pair moments, independent product-state ELBO/KL sums, finite differences for every gradient coordinate, one-coordinate exhaustive objective scans, every-update ascent/history reconstruction, symmetry/permutation checks, zero-start nonmaximum, the objective-versus-mean counterexample, lost covariance, saturated/underflow arithmetic, validation, input/RNG isolation, actual exact-work boundary and preflight rejection, CLI equality/errors and four figure tests. 20 added curvature/API/CLI tests verify exact congruence and witness reconstruction, a 729-matrix independent characteristic-polynomial inertia oracle, 1x1/2x2 and singular pivots, finite-difference Hessians, binary-neighbor sign boundaries, coordinate permutations, 12-spin and near-endpoint cases, input isolation and validation. Four added curvature-figure tests verify all 15 count bars and complete certificates. The original figure tests inspect all 16 bars and nine table values, full unchanged metadata, regeneration and rejection of changed fixtures.
 
 For the state reference, "exact" means full finite-state enumeration using floating-point log-sum-exp, **not rational or outward-rounded arithmetic**. Tiny numerical KL or covariance errors are possible. Saturated `tanh` values become product point masses. There is no proof of a global mean-field optimum, no exact arbitrary-dimensional posterior inference, observation conditioning, parameter learning, mixture variational family, stochastic optimization, MCMC, calibrated uncertainty or deployment claim.
 
@@ -119,3 +140,5 @@ The ELBO/KL identity and mean-field coordinate principle are standard, following
 Curvature inertia follows [Sylvester's law and block congruence, explained by Nick Higham (2022)](https://nhigham.com/2022/12/06/what-is-the-inertia-of-a-matrix/). The rational elimination, certificate format, witnesses and boundary fixtures are independent implementations, not copied code. See [DESIGN.md](DESIGN.md) for the proof and arithmetic boundary.
 
 The curvature figure/demo fixes the captured broken-symmetry means to the binary floats `0.9949015284526289` rather than refitting during rendering. It embeds the complete rational certificate but omits the separate libm-dependent float gradient diagnostic, which remains available in the API. This keeps byte regeneration portable without rounding or weakening exact sign checks.
+
+25 forest/API/CLI tests cover 324 directly enumerated conditioned three-spin cases, independent directed-message subtree sums, analytic long-chain/star partitions, singleton/edge consistency, rare-evidence underflow logs, disconnected/isolated/full-evidence cases, schedule dependencies, permutation/isolation, cycle/size validation and unchanged original bounds. Four forest-figure tests verify the displayed bars/baselines, explicit rounded metadata and regeneration. Sum-product follows [Zemel and Urtasun, CSC412 exact inference lectures (2016), tree message passing and log-domain normalization](https://www.cs.toronto.edu/~duvenaud/courses/csc412/lectures/05-exactInference.pdf). Code, supplied examples and independent test oracles are original.
