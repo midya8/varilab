@@ -35,3 +35,6 @@ jobs:
       - run: python -m varilab forest-demo > /tmp/forest-demo.json
       - run: python -m varilab forest examples/coupled.json --evidence '[{"i":0,"spin":1}]'
       - run: PYTHONPATH=. python examples/render_forest.py --check
+      - run: python -m varilab map-demo > /tmp/map-demo.json
+      - run: python -m varilab map examples/coupled.json --evidence '[{"i":0,"spin":1}]'
+      - run: PYTHONPATH=. python examples/render_map.py --check
