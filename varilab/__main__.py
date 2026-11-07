@@ -3,6 +3,7 @@ import json
 from .core import exact,mean_field,compare
 from .demo import demo
 from .curvature import curvature,curvature_demo
+from .forest import forest,forest_demo
 
 
 def _pairs(items):
@@ -21,8 +22,9 @@ def load(path):
 
 def main(argv=None):
     p=argparse.ArgumentParser(description='Exact enumeration versus product mean-field inference in tiny Ising models')
-    sub=p.add_subparsers(dest='command',required=True);sub.add_parser('demo');sub.add_parser('curvature-demo')
+    sub=p.add_subparsers(dest='command',required=True);sub.add_parser('demo');sub.add_parser('curvature-demo');sub.add_parser('forest-demo')
     a=sub.add_parser('exact');a.add_argument('model')
+    a=sub.add_parser('forest');a.add_argument('model');a.add_argument('--evidence',help='JSON list of {i,spin} hard observations')
     a=sub.add_parser('curvature');a.add_argument('model');a.add_argument('--means',required=True,help='JSON array of interior spin means')
     for name in ('fit','compare'):
         a=sub.add_parser(name);a.add_argument('model');a.add_argument('--initial',help='JSON array of initial spin means')
@@ -32,6 +34,8 @@ def main(argv=None):
     try:
         if args.command=='demo':out=demo()
         elif args.command=='curvature-demo':out=curvature_demo()
+        elif args.command=='forest-demo':out=forest_demo()
+        elif args.command=='forest':out=forest(load(args.model),evidence=json.loads(args.evidence) if args.evidence is not None else None)
         elif args.command=='exact':out=exact(load(args.model))
         elif args.command=='curvature':out=curvature(load(args.model),json.loads(args.means))
         else:
