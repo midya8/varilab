@@ -32,3 +32,6 @@ jobs:
       - run: python -m varilab curvature-demo
       - run: python -m varilab curvature examples/coupled.json --means '[0,0]'
       - run: PYTHONPATH=. python examples/render_curvature.py --check
+      - run: python -m varilab forest-demo > /tmp/forest-demo.json
+      - run: python -m varilab forest examples/coupled.json --evidence '[{"i":0,"spin":1}]'
+      - run: PYTHONPATH=. python examples/render_forest.py --check
