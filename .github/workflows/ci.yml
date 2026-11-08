@@ -42,3 +42,6 @@ jobs:
       - run: python -m varilab plan examples/coupled.json --query '[1]'
       - run: python -m varilab eliminate examples/coupled.json --query '[1]' --evidence '[{"i":0,"spin":1}]'
       - run: PYTHONPATH=. python examples/render_elimination.py --check
+      - run: python -m varilab cyclic-map-demo > /tmp/cyclic-map-demo.json
+      - run: python -m varilab cyclic-map examples/coupled.json --query '[1]' --evidence '[{"i":0,"spin":1}]'
+      - run: PYTHONPATH=. python examples/render_cyclic_map.py --check
