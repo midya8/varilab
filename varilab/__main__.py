@@ -6,6 +6,7 @@ from .curvature import curvature,curvature_demo
 from .forest import forest,forest_demo
 from .decoding import forest_map,map_demo
 from .elimination import eliminate,elimination_plan,elimination_demo
+from .cyclic_map import cyclic_map,cyclic_map_demo
 
 
 def _pairs(items):
@@ -24,8 +25,8 @@ def load(path):
 
 def main(argv=None):
     p=argparse.ArgumentParser(description='Exact enumeration versus product mean-field inference in tiny Ising models')
-    sub=p.add_subparsers(dest='command',required=True);sub.add_parser('demo');sub.add_parser('curvature-demo');sub.add_parser('forest-demo');sub.add_parser('map-demo');sub.add_parser('elimination-demo')
-    for name in ('eliminate','plan'):
+    sub=p.add_subparsers(dest='command',required=True);sub.add_parser('demo');sub.add_parser('curvature-demo');sub.add_parser('forest-demo');sub.add_parser('map-demo');sub.add_parser('elimination-demo');sub.add_parser('cyclic-map-demo')
+    for name in ('eliminate','plan','cyclic-map'):
         a=sub.add_parser(name);a.add_argument('model');a.add_argument('--query',help='JSON array of unobserved query indices');a.add_argument('--evidence',help='JSON hard-evidence records');a.add_argument('--order',help='JSON elimination permutation of nonquery, unobserved indices')
     a=sub.add_parser('exact');a.add_argument('model')
     for name in ('forest','map'):
@@ -42,8 +43,9 @@ def main(argv=None):
         elif args.command=='forest-demo':out=forest_demo()
         elif args.command=='map-demo':out=map_demo()
         elif args.command=='elimination-demo':out=elimination_demo()
-        elif args.command in ('eliminate','plan'):
-            out=(eliminate if args.command=='eliminate' else elimination_plan)(load(args.model),query=json.loads(args.query) if args.query is not None else None,evidence=json.loads(args.evidence,object_pairs_hook=_pairs) if args.evidence is not None else None,order=json.loads(args.order) if args.order is not None else None)
+        elif args.command=='cyclic-map-demo':out=cyclic_map_demo()
+        elif args.command in ('eliminate','plan','cyclic-map'):
+            out={'eliminate':eliminate,'plan':elimination_plan,'cyclic-map':cyclic_map}[args.command](load(args.model),query=json.loads(args.query) if args.query is not None else None,evidence=json.loads(args.evidence,object_pairs_hook=_pairs) if args.evidence is not None else None,order=json.loads(args.order) if args.order is not None else None)
         elif args.command=='map':out=forest_map(load(args.model),evidence=json.loads(args.evidence,object_pairs_hook=_pairs) if args.evidence is not None else None)
         elif args.command=='forest':out=forest(load(args.model),evidence=json.loads(args.evidence,object_pairs_hook=_pairs) if args.evidence is not None else None)
         elif args.command=='exact':out=exact(load(args.model))
