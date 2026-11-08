@@ -107,6 +107,25 @@ A direct 16-node zero-field star, coupling 1/2, needs 65,536 assignments in its 
 
 The algorithm combines log potentials by addition and sums out one spin with log-sum-exp. It does not require a full graph-state table; requested query tables and intermediate factor work can still be exponential in their scopes. The reported `log_partition` sums `exp(E)` over evidence-compatible states; it is **not normalized evidence probability** without the separate unconditional partition. Query probabilities normalize that restricted partition. Possible probability underflow retains finite log probability, with no clipping. The existing forest and rational MAP paths keep their own limits/arithmetic and are unchanged. This path does not add cyclic MAP, arbitrary factor families, learning, causal interpretation, calibrated uncertainty or unbounded inference.
 
+
+## Cyclic joint MAP with exact counts and compatible traceback
+
+![Triangle local-choice failure and exact odd-ring MAP certificate](assets/cyclic-map-audit.svg)
+
+```sh
+python -m varilab cyclic-map-demo
+python -m varilab cyclic-map examples/coupled.json --query '[1]' --evidence '[{"i":0,"spin":1}]'
+PYTHONPATH=. python examples/render_cyclic_map.py --check
+```
+
+`cyclic_map(model, query=..., evidence=..., order=...)` uses the existing 64-spin symbolic planner and all three table-work caps, but performs exact rational max-sum rather than float log-sum-exp. Each factor cell carries a best score, an integer count of compatible maximizing eliminated assignments, and all maximizing eliminated spins. A query row gives the full-graph optimum score/count conditional on that query state, its exact gap, and whether it reaches the global optimum. Final maximization includes query spins too. This is **joint MAP, not marginal MAP**: no variable is summed out, and scores/counts are not probabilities. Fractions represent the compiled binary-float inputs, not the original decimal strings.
+
+The directly specified zero-field triangle has all three couplings -1. Every singleton permits both spins in a global optimum, but independent first choices (-1,-1,-1) score -3. Compatible reverse traceback reaches score +1, a gap of 4; there are six global optima, not a unique answer. A separate 63-spin odd ring with the same couplings has exact score 61 and 126 optima, matching the independent formula n-2 and 2*n: pick one unsatisfied edge and a global spin flip. Its peak is 8 bucket assignments. The 16-star order-control demo still rejects hub-first and accepts min-fill; both gate directions are asserted. Graphs, couplings and orders are directly specified, not searched or timed.
+
+The result includes the complete symbolic plan, every produced rational score/count/choice table, a chosen query state, reverse traceback with actual separator context, the full compatible assignment and separately recomputed score. Equal scores use rational equality, never a tolerance. Ties pick the first sorted query state, then first compatible stored spin in reverse elimination order. The witness is deterministic for that plan, **not globally lexicographic or order-invariant**. Counts include disconnected components and eliminated-variable multiplicities. The planner's counters still count table-cell reads/outputs, not scalar arithmetic operations: rational numerator/denominator and count bit lengths, choice arrays, traceback, serialization and object overhead cost more. No time, RAM-byte, optimal-treewidth, learning or causal claim follows.
+
+27 new API/CLI tests cover 972 field/evidence/query/order cases against independent Fraction enumeration, every query-constrained optimum/count/gap, all 24 dense-four orders, full intermediate-factor semantic oracles, compatible context-aware traceback, odd/even ring analytic scores/counts, disconnected multiplicity, 64 isolated spins with 2^64 optima, fully observed/all-query cases, all three resource boundaries and rejection before numeric tables, dense-64 refusal, subnormal gaps, binary-vs-decimal fractions, forest agreement, relabelled scores/counts, validation, strict CLI, determinism and input/output/RNG isolation. Four new figure tests check signed-score geometry on one zero scale, the complete exact demo metadata, regeneration and changed-trace rejection. Project total: **183 tests and six reproducible SVGs**. All five earlier demos and SVGs are unchanged. MAP elimination and traceback follow [University of Washington CSE515 max-product lecture (2020)](https://courses.cs.washington.edu/courses/cse515/20wi/maxprod.pdf); rational multiplicity accounting, implementation, fixtures and independent tests are original.
+
 ## Model and calculations
 
 For spins `z_i` in `{-1,+1}`, the target is proportional to:
