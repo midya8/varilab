@@ -1,8 +1,31 @@
 # VariLab
 
-Mean-field variational inference from scratch, with an exact finite-state reference and an objective-versus-marginal failure audit. Dependency-free Python 3.10+.
+Mean-field inference, tree message passing and bounded variable elimination for
+supplied Ising models. Compare a product approximation with all-state enumeration,
+inspect rational curvature certificates, or recover a compatible joint MAP
+assignment. Dependency-free Python 3.10+.
 
-VariLab solves **small supplied Ising distributions**, not a data-fitting or posterior-learning problem. It enumerates every binary spin state in log space, then fits a product distribution by sequential coordinate ascent. Every coordinate update is recorded. The ELBO, independently summed reverse KL, exact means and missing correlations stay visible.
+Fields and couplings are inputs, not learned parameters. The mean-field audit
+records every sequential coordinate update and keeps the ELBO, independently
+summed reverse KL, reference means and missing correlations visible. The other
+calculations keep their own arithmetic and resource limits.
+
+## Choose a calculation
+
+| Question | API | Arithmetic and bound |
+|---|---|---|
+| Full state reference or product approximation | `exact`, `mean_field`, `compare` | Floating log-space enumeration/coordinate ascent, up to 12 spins |
+| Hessian sign counts at supplied interior means | `curvature` | Rational congruence over represented inputs, up to 12 spins |
+| Condition an acyclic model | `forest` | Floating log-domain sum-product, up to 128 spins |
+| Find a compatible forest MAP assignment and count ties | `forest_map` | Rational max-sum, up to 128 spins |
+| Condition a bounded cyclic query | `elimination_plan`, `eliminate` | Symbolic work gate, then floating log-sum-exp, up to 64 spins |
+| Find cyclic joint MAP and count ties | `cyclic_map` | Same symbolic gate, then rational max-sum and compatible traceback |
+
+The enumeration reference's "exact" means every finite state is visited, not
+rational probabilities. Rational scores and curvature concern the compiled
+binary64 inputs. Rejected work plans mean a resource limit, not an impossible
+model. Conditioning is not a causal intervention, and MAP is not a collection
+of independently chosen marginal modes.
 
 ![Exact and mean-field joint distributions, with objective and mean errors](assets/variational-audit.svg)
 
@@ -50,7 +73,7 @@ No eigenvalue tolerance turns the adjacent representable couplings into the same
 
 Unlike the finite-state reference, this curvature calculation is rational arithmetic on the represented point. It does not invoke state enumeration or fitting. It rejects endpoint means; Hessian derivatives are not finite there. Dimension remains capped at 12; elimination uses cubic rational-operation work and quadratic storage, with variable integer bit cost, not a runtime promise. No spectral condition number, exact gradient, optimizer convergence proof or interval enclosure of uncertain inputs is claimed.
 
-## Exact sum-product on forests, with evidence
+## Sum-product on forests with evidence
 
 ![Conditioning travels through an acyclic four-spin Ising model](assets/forest-audit.svg)
 
@@ -124,7 +147,15 @@ The directly specified zero-field triangle has all three couplings -1. Every sin
 
 The result includes the complete symbolic plan, every produced rational score/count/choice table, a chosen query state, reverse traceback with actual separator context, the full compatible assignment and separately recomputed score. Equal scores use rational equality, never a tolerance. Ties pick the first sorted query state, then first compatible stored spin in reverse elimination order. The witness is deterministic for that plan, **not globally lexicographic or order-invariant**. Counts include disconnected components and eliminated-variable multiplicities. The planner's counters still count table-cell reads/outputs, not scalar arithmetic operations: rational numerator/denominator and count bit lengths, choice arrays, traceback, serialization and object overhead cost more. No time, RAM-byte, optimal-treewidth, learning or causal claim follows.
 
-27 new API/CLI tests cover 972 field/evidence/query/order cases against independent Fraction enumeration, every query-constrained optimum/count/gap, all 24 dense-four orders, full intermediate-factor semantic oracles, compatible context-aware traceback, odd/even ring analytic scores/counts, disconnected multiplicity, 64 isolated spins with 2^64 optima, fully observed/all-query cases, all three resource boundaries and rejection before numeric tables, dense-64 refusal, subnormal gaps, binary-vs-decimal fractions, forest agreement, relabelled scores/counts, validation, strict CLI, determinism and input/output/RNG isolation. Four new figure tests check signed-score geometry on one zero scale, the complete exact demo metadata, regeneration and changed-trace rejection. Project total: **183 tests and six reproducible SVGs**. All five earlier demos and SVGs are unchanged. MAP elimination and traceback follow [University of Washington CSE515 max-product lecture (2020)](https://courses.cs.washington.edu/courses/cse515/20wi/maxprod.pdf); rational multiplicity accounting, implementation, fixtures and independent tests are original.
+Independent tests compare query-constrained optima, counts, gaps and intermediate
+factors against direct Fraction enumeration, then reconstruct the compatible
+traceback. They include all 24 dense-four orders, analytic ring counts,
+disconnected multiplicity, subnormal gaps and rejection before numeric tables.
+The current suite has **183 tests and six reproducible SVGs**. The five earlier
+demos and SVGs remain unchanged. MAP elimination and traceback follow
+[University of Washington CSE515 max-product lecture (2020)](https://courses.cs.washington.edu/courses/cse515/20wi/maxprod.pdf).
+The rational multiplicity accounting, implementation, fixtures and independent
+tests are original.
 
 ## Model and calculations
 
@@ -190,20 +221,94 @@ Exact enumeration is capped at `2**n * (n + edge_count + n*n) <= 786432`. Fittin
 
 JSON files are capped at 256 KiB. Duplicate keys, nonfinite values, unknown fields, malformed inputs and inconsistent dimensions are errors. CLI errors exit 2, without partial JSON or a traceback. Runtime and tests use only the standard library. Outputs do not mutate model/settings inputs or global random state; no RNG is used.
 
-## Evidence, limits and attribution
+## Checks and reproduction
 
-152 tests include analytic independent/two-spin references, direct exponential enumeration on 216 three-spin models, all pair moments, independent product-state ELBO/KL sums, finite differences for every gradient coordinate, one-coordinate exhaustive objective scans, every-update ascent/history reconstruction, symmetry/permutation checks, zero-start nonmaximum, the objective-versus-mean counterexample, lost covariance, saturated/underflow arithmetic, validation, input/RNG isolation, actual exact-work boundary and preflight rejection, CLI equality/errors and four figure tests. 20 added curvature/API/CLI tests verify exact congruence and witness reconstruction, a 729-matrix independent characteristic-polynomial inertia oracle, 1x1/2x2 and singular pivots, finite-difference Hessians, binary-neighbor sign boundaries, coordinate permutations, 12-spin and near-endpoint cases, input isolation and validation. Four added curvature-figure tests verify all 15 count bars and complete certificates. The original figure tests inspect all 16 bars and nine table values, full unchanged metadata, regeneration and rejection of changed fixtures.
+The current suite has **183 tests**. All six SVGs regenerate from their demo
+payloads; tests check plotted values and geometry, complete metadata, unchanged
+regeneration and rejection of altered fixtures. These are finite checks of this
+implementation, not all-input numerical proofs.
 
-For the state reference, "exact" means full finite-state enumeration using floating-point log-sum-exp, **not rational or outward-rounded arithmetic**. Tiny numerical KL or covariance errors are possible. Saturated `tanh` values become product point masses. There is no proof of a global mean-field optimum, no exact arbitrary-dimensional posterior inference, likelihood fitting, parameter learning, mixture variational family, stochastic optimization, MCMC, calibrated uncertainty or deployment claim.
+- **Enumeration and mean field:** analytic independent/two-spin references,
+  216 directly enumerated three-spin targets, all covariance entries,
+  independent product-state ELBO/KL sums, every gradient coordinate,
+  one-coordinate objective scans and every-update history/ascent checks.
+  Controls include the zero-start nonmaximum, both mean-error gate outcomes,
+  lost correlation, saturation, underflow and work-cap boundaries.
+- **Curvature:** exact congruence and signed-witness reconstruction, an
+  independent characteristic-polynomial inertia oracle for 729 symmetric
+  three-by-three matrices, singular and two-by-two pivots, adjacent binary64
+  couplings, finite-difference Hessians and near-endpoint inputs.
+- **Forest sum-product:** 324 conditioned three-spin cases against direct
+  exponentials, independent directed-message subtree sums, singleton/edge
+  consistency, long-chain/star formulas, dependency readiness, rare-evidence
+  logs and cycle rejection before messages.
+- **Forest MAP:** 972 exact enumerations with evidence and every singleton
+  constrained optimum/count, independent source-side message scores and choices,
+  compatible traceback, analytic 128-spin counts, binary-vs-decimal fractions
+  and smallest-subnormal strict gaps.
+- **Cyclic sum-product:** 432 field/evidence/query/order combinations, every
+  order of a dense four-node graph, independent source-factor/scope checks,
+  planned-versus-executed counters, analytic cycle/star formulas and all three
+  resource boundaries, including refusal before numeric tables.
+- **Cyclic joint MAP:** 972 cases against independent Fraction enumeration,
+  every query-constrained optimum/count/gap, full intermediate-factor semantic
+  oracles, separator-aware traceback, odd/even rings, disconnected counts and
+  dense-64 symbolic refusal. Score/count agreement does not require tied
+  witnesses to be order-invariant.
 
-The ELBO/KL identity and mean-field coordinate principle are standard, following [Blei, Kucukelbir and McAuliffe (2017), sections 2.2-2.4](https://www.cs.columbia.edu/~blei/papers/BleiKucukelbirMcAuliffe2017.pdf). The Ising reduction, implementation, synthetic fixtures, independent test references and figures here are original. No paper text, code or external dataset is bundled. MIT licensed. No network, API key, paid service, model download or GPU is needed.
+The suite also checks strict CLI equality/errors, deterministic results,
+validation and input/output/global-RNG isolation. No random generator is used.
+Run the suite and the six figure checks from the repository root:
 
-Curvature inertia follows [Sylvester's law and block congruence, explained by Nick Higham (2022)](https://nhigham.com/2022/12/06/what-is-the-inertia-of-a-matrix/). The rational elimination, certificate format, witnesses and boundary fixtures are independent implementations, not copied code. See [DESIGN.md](DESIGN.md) for the proof and arithmetic boundary.
+```sh
+python -m unittest discover -s tests -v
+for name in audit curvature forest map elimination cyclic_map; do
+  PYTHONPATH=. python examples/render_$name.py --check
+done
+```
 
-The curvature figure/demo fixes the captured broken-symmetry means to the binary floats `0.9949015284526289` rather than refitting during rendering. It embeds the complete rational certificate but omits the separate libm-dependent float gradient diagnostic, which remains available in the API. This keeps byte regeneration portable without rounding or weakening exact sign checks.
+## Limits and attribution
 
-25 forest/API/CLI tests cover 324 directly enumerated conditioned three-spin cases, independent directed-message subtree sums, analytic long-chain/star partitions, singleton/edge consistency, rare-evidence underflow logs, disconnected/isolated/full-evidence cases, schedule dependencies, permutation/isolation, cycle/size validation and unchanged original bounds. Four forest-figure tests verify the displayed bars/baselines, explicit rounded metadata and regeneration. Sum-product follows [Zemel and Urtasun, CSC412 exact inference lectures (2016), tree message passing and log-domain normalization](https://www.cs.toronto.edu/~duvenaud/courses/csc412/lectures/05-exactInference.pdf). Code, supplied examples and independent test oracles are original.
+For enumeration, "exact" means the complete finite support is visited with
+floating log-sum-exp, not rational or outward-rounded probabilities. Tiny KL or
+covariance roundoff is possible. Saturated `tanh` values become product point
+masses. A reached stopping rule does not prove a global mean-field optimum.
+There is no parameter learning, likelihood fitting, richer variational family,
+MCMC, calibrated uncertainty or deployment claim.
 
-27 added MAP/API/CLI tests cover 972 independent exact enumerations with evidence and every singleton constrained optimum/count, separate exhaustive directed source-side scores/counts/backpointers, analytic 128-node chain/star/isolated counts, compatible traceback, the unique marginal-mode and tied-max-marginal counterexamples, disconnected component accounting, binary-vs-decimal fractions, smallest-subnormal strict gaps, permutation/determinism/isolation, validation and CLI equality/errors. Duplicate evidence JSON keys are rejected in both forest CLIs. Four new figure tests verify signed common-zero geometry, full rational certificates/counts/traceback metadata, portable rounded marginal labels, regeneration and changed-fixture rejection. Max-sum and traceback follow [University of Washington, CSE515 max-product lecture (2020)](https://courses.cs.washington.edu/courses/cse515/20wi/maxprod.pdf). Rational multiplicity accounting, implementation, fixtures and independent test references here are original.
+Curvature and MAP use exact fractions of the compiled binary-float inputs, not
+original decimal strings or intervals around uncertain data. Curvature signs
+do not by themselves certify a maximum; the separate gradient is floating
+point. Sum-product probabilities retain their distinct floating arithmetic.
+Conditioning is not intervention, and joint MAP is not marginal MAP.
 
-30 new elimination/API/CLI tests cover 432 cyclic field/evidence/query/order combinations against independent direct exponential enumeration, all 24 orders of a dense four-node graph, all-observed/all-query/isolated/disconnected cases, query ordering, source-factor values and symbolic scope reconstruction, planned-versus-executed counters, exact resource boundaries, rejection before numeric tables, symbolic dense-64 refusal, analytic 64-cycle and star formulas, min-fill tie rules, underflow logs, old forest partition agreement, validation and input/output/RNG isolation. Four figure tests check every logarithmic bucket-size bar and cap coordinate, full symbolic metadata, portable rounded labels, regeneration and changed-plan rejection. Variable elimination, evidence restriction, fill edges and ordering follow [Zemel and Urtasun, CSC412 exact inference lecture (2016)](https://www.cs.toronto.edu/~duvenaud/courses/csc412/lectures/05-exactInference.pdf). This implementation, budget accounting, fixtures, analytic checks and test references are original.
+Resource caps bound named table/work counters. They exclude variable-size
+integer arithmetic, planning, traceback, serialization and Python-object costs
+where stated; they are not seconds, memory bytes or a scalability benchmark.
+Refusal is a resource result, not proof that the model or query is impossible.
+See [DESIGN.md](DESIGN.md) for the recurrences, proof scope and arithmetic.
+
+The curvature demo fixes the captured broken-symmetry means to the binary
+floats `0.9949015284526289`, rather than refitting during rendering. Its SVG
+embeds complete rational certificates but omits the separate libm-dependent
+float gradient diagnostic. Forest and elimination figures label analytic means
+and probabilities rounded to 12 decimals for portable display geometry; their
+full floating outputs remain available in the CLI and are checked numerically.
+This does not weaken tolerance-free rational score or sign comparisons.
+
+Established methods and sources:
+
+- [Blei, Kucukelbir and McAuliffe (2017), sections 2.2-2.4](https://www.cs.columbia.edu/~blei/papers/BleiKucukelbirMcAuliffe2017.pdf):
+  ELBO/KL identity, product family and coordinate updates.
+- [Nick Higham (2022), inertia and congruence](https://nhigham.com/2022/12/06/what-is-the-inertia-of-a-matrix/):
+  Sylvester's law preserves signs under an invertible congruence, not eigenvalue
+  magnitudes.
+- [Zemel and Urtasun, CSC412 exact inference (2016)](https://www.cs.toronto.edu/~duvenaud/courses/csc412/lectures/05-exactInference.pdf):
+  sum-product, evidence restriction, factor scopes, fill edges and ordering.
+- [University of Washington CSE515 max-product (2020)](https://courses.cs.washington.edu/courses/cse515/20wi/maxprod.pdf):
+  max-sum and compatible traceback.
+
+The Ising implementation, rational score/count representation, resource
+contracts, constructed fixtures, independent test references and figures are
+original. No paper text, code or external dataset is bundled. Code is MIT.
+No network service, API key, paid service, model download or GPU is needed.
